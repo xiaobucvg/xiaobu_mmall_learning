@@ -17,4 +17,6 @@ public interface IUserService {
 	ServerResponse<User> getUserInformation(User user);
 	ServerResponse<String> checkAdmin(User user);
 	ServerResponse checkCurrentUserAuth(User user);
+	boolean isOnline(String userCookie,User user);
+	boolean isOnline(String userCookie) ;
 }

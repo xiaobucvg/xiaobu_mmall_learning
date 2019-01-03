@@ -1,5 +1,6 @@
 package com.mmall.controller.admin;
 
+import com.github.pagehelper.StringUtil;
 import com.google.common.collect.Maps;
 import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
@@ -8,6 +9,9 @@ import com.mmall.pojo.User;
 import com.mmall.service.IFileService;
 import com.mmall.service.IProductService;
 import com.mmall.service.IUserService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.JedisUtil;
+import com.mmall.util.JsonUtil;
 import com.mmall.util.PropertiesUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,16 +45,20 @@ public class ProductManagerController {
 	@Resource
 	private IFileService iFileService;
 
+	@Resource
+	private IUserService userService;
+
 	/**
 	 * 新增OR更新产品
 	 */
 	//todo 产品不能为NULL的字段必须添加 不然会报出Sql异常 正在想怎么修改
 	@RequestMapping("save.do")
 	@ResponseBody
-	public ServerResponse productSaveOrUpdate(HttpSession session, Product product) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
-			return ServerResponse.createByErrorMessage("需要登陆.");
+	public ServerResponse productSaveOrUpdate(HttpServletRequest req, Product product) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
+			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		ServerResponse res = iUserService.checkCurrentUserAuth(user);
 		if (!res.isSuccess()) {
@@ -64,10 +72,11 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("set_sale_status.do")
 	@ResponseBody
-	public ServerResponse setSaleStatus(HttpSession session, @RequestParam("id") Integer id, @RequestParam(value = "status") Integer status) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
-			return ServerResponse.createByErrorMessage("需要登陆.");
+	public ServerResponse setSaleStatus(HttpServletRequest req, @RequestParam("id") Integer id, @RequestParam(value = "status") Integer status) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
+			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		ServerResponse res = iUserService.checkCurrentUserAuth(user);
 		if (!res.isSuccess()) {
@@ -81,10 +90,11 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("get_product_detail.do")
 	@ResponseBody
-	public ServerResponse getProductDetail(HttpSession session, @RequestParam("id") Integer id) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
-			return ServerResponse.createByErrorMessage("需要登陆.");
+	public ServerResponse getProductDetail(HttpServletRequest req, @RequestParam("id") Integer id) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
+			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		ServerResponse res = iUserService.checkCurrentUserAuth(user);
 		if (!res.isSuccess()) {
@@ -98,10 +108,11 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("get_product_list.do")
 	@ResponseBody
-	public ServerResponse getProductList(HttpSession session, @RequestParam(value = "pageNumber", defaultValue = "1") Integer pageNumber, @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
-			return ServerResponse.createByErrorMessage("需要登陆.");
+	public ServerResponse getProductList(HttpServletRequest req, @RequestParam(value = "pageNumber", defaultValue = "1") Integer pageNumber, @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
+			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		ServerResponse res = iUserService.checkCurrentUserAuth(user);
 		if (!res.isSuccess()) {
@@ -115,10 +126,11 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("search_product.do")
 	@ResponseBody
-	public ServerResponse searchProduct(HttpSession session, String productName, Integer id, @RequestParam(value = "pageNumber", defaultValue = "1") Integer pageNumber, @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
-			return ServerResponse.createByErrorMessage("需要登陆.");
+	public ServerResponse searchProduct(HttpServletRequest req, String productName, Integer id, @RequestParam(value = "pageNumber", defaultValue = "1") Integer pageNumber, @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req));
+		if(!online){
+			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		return iProductService.searchProduct(productName, id, pageNumber, pageSize);
 	}
@@ -128,10 +140,11 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("upload.do")
 	@ResponseBody
-	public ServerResponse upload(HttpSession session, HttpServletRequest request, @RequestParam(value = "file") MultipartFile file) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
-			return ServerResponse.createByErrorMessage("需要登陆.");
+	public ServerResponse upload(HttpServletRequest req, HttpServletRequest request, @RequestParam(value = "file") MultipartFile file) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
+			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		ServerResponse res = iUserService.checkCurrentUserAuth(user);
 		if (!res.isSuccess()) {
@@ -160,11 +173,11 @@ public class ProductManagerController {
 	 */
 	@RequestMapping("rich_text_upload.do")
 	@ResponseBody
-	public Map uploadRichText(HttpSession session, HttpServletRequest request, @RequestParam(value = "file", required = false) MultipartFile file, HttpServletResponse response) {
+	public Map uploadRichText(HttpServletRequest req, HttpServletRequest request, @RequestParam(value = "file", required = false) MultipartFile file, HttpServletResponse response) {
 		Map<String, String> map = Maps.newConcurrentMap();
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		ServerResponse res = iUserService.checkCurrentUserAuth(user);
-		if (user == null || !res.isSuccess()) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online || !iUserService.checkCurrentUserAuth(user).isSuccess()){
 			map.put("success", "false");
 			map.put("msg", "需要登陆管理员账户才能上传.");
 		}

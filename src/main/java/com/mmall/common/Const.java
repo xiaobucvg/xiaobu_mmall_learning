@@ -19,6 +19,11 @@ public class Const {
 
 	public static final Set<String> ORDER = Sets.newHashSet("price_asc","price_desc");
 
+	public interface UserConst{
+		int ONLINE_TIME = 60 * 60; // 保持在线时长一个小时
+		int FORGET_TOKEN = 60 * 60;
+	}
+
 	public interface Role {
 		int ROLE_COSTUMER = 0;
 		int ROLE_ADMIN = 1;

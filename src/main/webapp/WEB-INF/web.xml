@@ -23,6 +23,15 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    // 二期新增的过滤器
+    <filter>
+        <filter-name>refreshOnlineFilter</filter-name>
+        <filter-class>com.mmall.controller.Filter.RefreshOnlineFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>refreshOnlineFilter</filter-name>
+        <url-pattern>*.do</url-pattern>
+    </filter-mapping>
 
     <listener>
         <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>

@@ -10,6 +10,8 @@ import com.mmall.common.ResponseCode;
 import com.mmall.common.ServerResponse;
 import com.mmall.pojo.User;
 import com.mmall.service.IOrderService;
+import com.mmall.service.IUserService;
+import com.mmall.util.CookieUtil;
 import com.mmall.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.WebRequest;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.Writer;
@@ -39,15 +42,18 @@ public class OrderController {
 	private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 	@Resource
 	private IOrderService iOrderService;
+	@Resource
+	private IUserService userService;
 
 	/**
 	 * 创建订单
 	 */
 	@RequestMapping(value = "create.do")
 	@ResponseBody
-	public ServerResponse createOrder(HttpSession session, Integer shippingId) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse createOrder(HttpServletRequest req, Integer shippingId) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		return iOrderService.createOrder(user.getId(), shippingId);
@@ -58,9 +64,10 @@ public class OrderController {
 	 */
 	@RequestMapping(value = "cancel.do")
 	@ResponseBody
-	public ServerResponse cancelOrder(HttpSession session, Long orderNo) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse cancelOrder(HttpServletRequest req, Long orderNo) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		return iOrderService.cancelOrder(user.getId(), orderNo);
@@ -69,9 +76,10 @@ public class OrderController {
 	/** 获取购物车中的已经选中的商品信息 */
 	@RequestMapping(value = "get_cart_order_product.do")
 	@ResponseBody
-	public ServerResponse getCartOrderProduct(HttpSession session) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse getCartOrderProduct(HttpServletRequest req) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		return iOrderService.getCartOrderProduct(user.getId());
@@ -82,9 +90,10 @@ public class OrderController {
 	 */
 	@RequestMapping(value = "list.do")
 	@ResponseBody
-	public ServerResponse listOrders(HttpSession session, @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize, @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse listOrders(HttpServletRequest req, @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize, @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		return iOrderService.listOrders(user.getId(), pageSize, pageNum);
@@ -95,9 +104,10 @@ public class OrderController {
 	 */
 	@RequestMapping(value = "order_detail.do")
 	@ResponseBody
-	public ServerResponse getOrderDetail(HttpSession session, Long orderNo) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse getOrderDetail(HttpServletRequest req, Long orderNo) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		return iOrderService.getOrderDetail(user.getId(), orderNo);
@@ -107,9 +117,10 @@ public class OrderController {
 	 * 支付
 	 */
 	@RequestMapping(value = "pay.do")
-	public ServerResponse pay(HttpSession session, Long orderNo, Writer writer) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse pay(HttpServletRequest req, Long orderNo, Writer writer) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		ServerResponse<AlipayResponse> pay = iOrderService.pay(user.getId(), orderNo);
@@ -132,9 +143,10 @@ public class OrderController {
 	 */
 	@RequestMapping(value = "query_order_pay_status.do")
 	@ResponseBody
-	public ServerResponse queryOrderPayStatus(HttpSession session, Long orderNo) {
-		User user = (User) session.getAttribute(Const.CURRENT_USER);
-		if (user == null) {
+	public ServerResponse queryOrderPayStatus(HttpServletRequest req, Long orderNo) {
+		User user = new User();
+		boolean online = userService.isOnline(CookieUtil.reqUserCookie(req),user);
+		if(!online){
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), "需要登陆.");
 		}
 		return iOrderService.queryOrderPayStatus(user.getId(), orderNo);

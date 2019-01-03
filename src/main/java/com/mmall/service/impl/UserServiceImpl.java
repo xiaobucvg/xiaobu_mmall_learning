@@ -1,20 +1,26 @@
 package com.mmall.service.impl;
 
+import com.github.pagehelper.StringUtil;
 import com.mmall.common.Const;
 import com.mmall.common.ServerResponse;
 import com.mmall.common.TokenCache;
 import com.mmall.dao.UserMapper;
 import com.mmall.pojo.User;
 import com.mmall.service.IUserService;
+import com.mmall.util.CookieUtil;
+import com.mmall.util.JedisUtil;
+import com.mmall.util.JsonUtil;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.UUID;
 
 /**
- *  用户接口实现类
+ * 用户接口实现类
+ *
  * @author zh_job
- *  2018/12/4 9:16
+ * 2018/12/4 9:16
  **/
 @Service("iUserService")
 public class UserServiceImpl implements IUserService {
@@ -117,7 +123,7 @@ public class UserServiceImpl implements IUserService {
 
 	@Override
 	public ServerResponse<String> forgerRestPassword(String username, String passwordNew, String forgetToken) {
-		if (forgetToken == null || "".equals(forgetToken.trim())) {
+		if (StringUtils.isEmpty(forgetToken)) {
 			return ServerResponse.createByErrorMessage("Token不存在.");
 		}
 		ServerResponse<String> res = checkValid(username, Const.USERNAME);
@@ -125,11 +131,10 @@ public class UserServiceImpl implements IUserService {
 			return ServerResponse.createByErrorMessage("用户不存在.");
 		}
 		String token = TokenCache.getKey(TokenCache.TOKEN_PREFIX + username);
-		if (token == null || "".equals(forgetToken.trim())) {
+		if (StringUtils.isEmpty(token)) {
 			return ServerResponse.createByErrorMessage("Token无效或者过期.");
 		}
 
-		//todo 会出现空指针异常
 		if (forgetToken.equals(token)) {
 
 			//todo MD5加密密码
@@ -200,7 +205,7 @@ public class UserServiceImpl implements IUserService {
 	//Admin
 
 	/**
-	 *  检查用户是不是管理员
+	 * 检查用户是不是管理员
 	 */
 	@Override
 	public ServerResponse<String> checkAdmin(User user) {
@@ -212,7 +217,7 @@ public class UserServiceImpl implements IUserService {
 	}
 
 	/**
-	 *  判断当前登陆的用户的权限（是不是管理员）并让其前台登陆
+	 * 判断当前登陆的用户的权限（是不是管理员）并让其前台登陆
 	 */
 	public ServerResponse checkCurrentUserAuth(User user) {
 		ServerResponse<String> res = checkAdmin(user);
@@ -220,6 +225,36 @@ public class UserServiceImpl implements IUserService {
 			return res;
 		}
 		return ServerResponse.createByErrorMessage("您没有权限.");
+	}
+
+	// 二期
+
+	/**
+	 * 判断用户是否在线
+	 */
+	public boolean isOnline(String userCookie) {
+		String jsonRes = JedisUtil.get(userCookie);
+		if (StringUtils.isNotEmpty(jsonRes)) {
+			User user = JsonUtil.jsonToObj(jsonRes, User.class);
+			return user == null;
+		}
+		return false;
+	}
+	/**
+	 * 判断用户是否在线
+	 * 把用户赋值给参数
+	 */
+	public boolean isOnline(String userCookie,User user){
+		String jsonRes = JedisUtil.get(userCookie);
+		if (StringUtils.isNotEmpty(jsonRes)) {
+			User userRes = JsonUtil.jsonToObj(jsonRes, User.class);
+			if(user != null){
+				user = userRes;
+				return true;
+			}
+		}
+		user = null;
+		return false;
 	}
 
 }
