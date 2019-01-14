@@ -224,4 +224,8 @@
         </where>
     </select>
 
+    <select id="selectStockById" resultType="java.lang.Integer" parameterType="integer">
+        select stock from mmall_product where id=#{id} for update
+    </select>
+
 </mapper>

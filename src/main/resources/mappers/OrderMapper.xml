@@ -191,6 +191,10 @@
         where id = #{id,jdbcType=INTEGER}
     </update>
 
+    <update id="closeOrderByOrderId" parameterType="int">
+        update mmall_order set status=0 where id=#{id}
+    </update>
+
 
     <select id="selectByUserIdOrderNo" resultMap="BaseResultMap" parameterType="map">
         SELECT
@@ -221,6 +225,11 @@
         select <include refid="Base_Column_List"/>
         from mmall_order
         order by create_time desc
+    </select>
+
+    <select id="selectOrderStatusByTime" parameterType="map" resultType="com.mmall.pojo.Order">
+        select <include refid="Base_Column_List"/> from mmall_order
+        where status=#{status} and create_time <![CDATA[<=]]> #{date} order by create_time desc
     </select>
 
 

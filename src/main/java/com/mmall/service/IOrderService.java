@@ -23,4 +23,5 @@ public interface IOrderService {
 	ServerResponse manageOrderDetail(Long orderNo);
 	ServerResponse manageSearchOrder(Long orderNo,Integer pageSize,Integer pageNum);
 	ServerResponse sendGoods(Long orderNo);
+	void closeOrder(int hour);
 }

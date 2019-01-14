@@ -37,15 +37,16 @@ public class UserController {
 	/**
 	 * 登陆接口
 	 */
-	@RequestMapping(value = "login.do", method = RequestMethod.POST)
+	@RequestMapping(value = "login.do")
 	@ResponseBody
 	public ServerResponse<User> login(String username, String password, HttpServletRequest req, HttpServletResponse resp) {
 		ServerResponse<User> loginResponse = iUserService.login(username, password);
 		if (loginResponse.isSuccess()) {
-			String jessionIdValue = CookieUtil.getJessionIdValue(req);
-			CookieUtil.resUserCookie(resp, jessionIdValue);
-			JedisUtil.setEx(jessionIdValue, JsonUtil.objToJson(loginResponse.getData()), Const.UserConst.ONLINE_TIME);
-			return loginResponse;
+			String jsessionIdValue = CookieUtil.getJessionIdValue(req);
+			CookieUtil.resUserCookie(resp, jsessionIdValue);
+			String res = JedisUtil.setEx(jsessionIdValue, JsonUtil.objToJson(loginResponse.getData()), Const.UserConst.ONLINE_TIME);
+			if (res != null)
+				return loginResponse;
 		}
 		return ServerResponse.createByErrorMessage("未知错误,登陆失败.");
 	}
@@ -85,14 +86,14 @@ public class UserController {
 	 */
 	@RequestMapping(value = "get_user_info.do", method = RequestMethod.POST)
 	@ResponseBody
-	public ServerResponse<User> getUserInfo(HttpServletRequest req,HttpServletResponse resp) {
+	public ServerResponse<User> getUserInfo(HttpServletRequest req, HttpServletResponse resp) {
 		String key = CookieUtil.reqUserCookie(req);
-		if(StringUtil.isEmpty(key)){
+		if (StringUtil.isEmpty(key)) {
 			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		String jsonRes = JedisUtil.get(key);
 		User user = JsonUtil.jsonToObj(jsonRes, User.class);
-		if(user == null){
+		if (user == null) {
 			return ServerResponse.createByErrorMessage("获取用户信息失败.");
 		}
 		return ServerResponse.createBySuccess(user);
@@ -132,8 +133,8 @@ public class UserController {
 	@ResponseBody
 	public ServerResponse<String> restPassword(HttpServletRequest req, String newPassword, String oldPassword) {
 		User user = new User();
-		boolean online = iUserService.isOnline(CookieUtil.reqUserCookie(req),user);
-		if(!online){
+		boolean online = iUserService.isOnline(CookieUtil.reqUserCookie(req), user);
+		if (!online) {
 			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		return iUserService.resetPassword(oldPassword, newPassword, user);
@@ -144,10 +145,10 @@ public class UserController {
 	 */
 	@RequestMapping(value = "update_user_info.do", method = RequestMethod.POST)
 	@ResponseBody
-	public ServerResponse<User> updateUserInformation(User user,HttpServletRequest req) {
+	public ServerResponse<User> updateUserInformation(User user, HttpServletRequest req) {
 		User oldUser = new User();
-		boolean online = iUserService.isOnline(CookieUtil.reqUserCookie(req),oldUser);
-		if(!online){
+		boolean online = iUserService.isOnline(CookieUtil.reqUserCookie(req), oldUser);
+		if (!online) {
 			return ServerResponse.createByErrorMessage("用户未登录.");
 		}
 		//防止横向越权 只能修改当前登陆的用户信息
@@ -170,8 +171,8 @@ public class UserController {
 	@ResponseBody
 	public ServerResponse<User> getUserInformation(HttpServletRequest req) {
 		User user = new User();
-		boolean online = iUserService.isOnline(CookieUtil.reqUserCookie(req),user);
-		if(!online){
+		boolean online = iUserService.isOnline(CookieUtil.reqUserCookie(req), user);
+		if (!online) {
 			return ServerResponse.createByErrorCodeMessage(ResponseCode.NEED_LOGIN.getCode(), ResponseCode.NEED_LOGIN.getDesc()); //status = 10
 		}
 

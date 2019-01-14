@@ -1,8 +1,10 @@
 package com.mmall.util;
 
-import com.mmall.common.RedisPool;
+import com.mmall.common.ShardedRedisPool;
 import lombok.extern.slf4j.Slf4j;
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.ShardedJedis;
+
+import java.util.Base64;
 
 /**
  *
@@ -16,7 +18,8 @@ public class JedisUtil {
 
 	/** 设置key - value */
 	public static String set(String key, String value){
-		Jedis jedis = RedisPool.getResource();
+		value = new String(Base64.getEncoder().encode(value.getBytes()));
+		ShardedJedis jedis = ShardedRedisPool.getResource();
 		String res = null;
 		try{
 			res = jedis.set(key, value);
@@ -28,10 +31,11 @@ public class JedisUtil {
 
 	/** 获取key值 */
 	public static String get(String key){
-		Jedis jedis = RedisPool.getResource();
+		ShardedJedis jedis = ShardedRedisPool.getResource();
 		String res = null;
 		try{
 			res = jedis.get(key);
+			res = new String(Base64.getDecoder().decode(res.getBytes()));
 		}catch(Exception e){
 			log.error("获取Key：{}出错",key,e);
 		}
@@ -40,31 +44,32 @@ public class JedisUtil {
 
 	/** 设置key的同时设置过期时间 (秒) */
 	public static String setEx(String key, String value, Integer seconds){
-		Jedis jedis = RedisPool.getResource();
+		value = new String(Base64.getEncoder().encode(value.getBytes()));
+		ShardedJedis jedis = ShardedRedisPool.getResource();
 		String res = null;
 		try{
 			res = jedis.setex(key, seconds, value);
 		}catch(Exception e){
-			log.error("获取Key：{}出错",key,e);
+			log.error("设置Key：{}为{}过期时间{}出错",key,value,seconds,e);
 		}
 		return res;
 	}
 
 	/** 设置一个key的过期时间 */
 	public static Long expire(String key, Integer seconds){
-		Jedis jedis = RedisPool.getResource();
+		ShardedJedis jedis = ShardedRedisPool.getResource();
 		Long res = null;
 		try{
 			res = jedis.expire(key, seconds);
 		}catch(Exception e){
-			log.error("获取Key：{}出错",key,e);
+			log.error("设置Key：{}的过期时间为{}出错",key,seconds,e);
 		}
 		return res;
 	}
 
 	/** 删除一个key */
 	public static void del(String key){
-		Jedis jedis = RedisPool.getResource();
+		ShardedJedis jedis = ShardedRedisPool.getResource();
 		jedis.del(key);
 	}
 }

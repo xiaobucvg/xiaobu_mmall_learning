@@ -24,6 +24,8 @@ import com.mmall.util.PropertiesUtil;
 import com.mmall.vo.OrderItemVo;
 import com.mmall.vo.OrderProductVo;
 import com.mmall.vo.OrderVo;
+import org.apache.commons.lang.time.DateUtils;
+import org.aspectj.weaver.ast.Or;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -441,5 +443,27 @@ public class OrderServiceImpl implements IOrderService {
 		order.setStatus(Const.Order.ORDER_SHIPPED);
 		order.setSendTime(new Date());
 		return ServerResponse.createBySuccess("发货成功.");
+	}
+
+	/** 关闭订单 hour个小时之内*/
+	public void closeOrder(int hour){
+		Date date = DateUtils.addHours(new Date(), -hour);
+		List<Order> orders = orderMapper.selectOrderStatusByTime(Const.Order.ORDER_UNPAID, DateUtil.dateToString(date));
+		for (Order order : orders){
+			List<OrderItem> orderItems = orderItemMapper.getByOrderNo(order.getOrderNo());
+			for(OrderItem orderItem : orderItems){
+				// 使用了锁
+				Integer stock = productMapper.selectStockById(orderItem.getProductId());
+				if(stock == null){
+					continue;
+				}
+				Product product = new Product();
+				product.setId(orderItem.getProductId());
+				product.setStock(orderItem.getQuantity() + stock);
+				productMapper.updateByPrimaryKeySelective(product);
+			}
+			orderMapper.closeOrderByOrderId(order.getId());
+			logger.info("关闭订单：{}", order.getOrderNo());
+		}
 	}
 }

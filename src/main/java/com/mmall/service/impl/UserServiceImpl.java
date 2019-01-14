@@ -248,12 +248,20 @@ public class UserServiceImpl implements IUserService {
 		String jsonRes = JedisUtil.get(userCookie);
 		if (StringUtils.isNotEmpty(jsonRes)) {
 			User userRes = JsonUtil.jsonToObj(jsonRes, User.class);
-			if(user != null){
-				user = userRes;
+			if(userRes != null){
+				user.setUsername(userRes.getUsername());
+				user.setPhone(userRes.getPhone());
+				user.setPassword(userRes.getPassword());
+				user.setId(userRes.getId());
+				user.setQuestion(userRes.getQuestion());
+				user.setAnswer(userRes.getAnswer());
+				user.setEmail(userRes.getEmail());
+				user.setRole(userRes.getRole());
+				user.setCreateTime(userRes.getCreateTime());
+				user.setUpdateTime(userRes.getUpdateTime());
 				return true;
 			}
 		}
-		user = null;
 		return false;
 	}
 

@@ -1,20 +1,20 @@
 package com.mmall.common;
 
-import com.mmall.util.JedisUtil;
+import com.google.common.collect.Lists;
 import com.mmall.util.PropertiesUtil;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.*;
+
+import java.util.List;
 
 /**
  *
- * redis连接池
+ * 分布式redis缓存池
  *
  * @author zh_job
- * 2018/12/31 13:21
+ * 2019/1/3 18:10
  */
-public class RedisPool {
-	private static JedisPool jedisPool;
+public class ShardedRedisPool {
+	private static ShardedJedisPool jedisPool;
 	private static Integer maxTotal = Integer.parseInt(PropertiesUtil.getValue("redis.max.total", "20"));// 最大连接数
 	private static Integer maxIdel = Integer.parseInt(PropertiesUtil.getValue("redis.max.idel", "10")); // 连接池实例最大空闲时间
 	private static Integer minIdel = Integer.parseInt(PropertiesUtil.getValue("redis.min.idel", "10")); // 连接池实例最小空闲事件
@@ -25,26 +25,39 @@ public class RedisPool {
 		init();
 	}
 
-	private static void init(){
+	private static void init() {
 		JedisPoolConfig config = new JedisPoolConfig();
 		config.setMaxIdle(maxIdel);
 		config.setMinIdle(minIdel);
 		config.setMaxTotal(maxTotal);
 		config.setTestOnBorrow(testOnBorrow);
 		config.setTestOnReturn(testOnReturn);
-		jedisPool = new JedisPool(config,PropertiesUtil.getValue("redis.ip") , Integer.parseInt(PropertiesUtil.getValue("redis.port"))) ;
+
+		// todo 这样处理不好 可以配置文件写成ip地址用逗号分隔 获取后遍历
+		JedisShardInfo info = new JedisShardInfo(PropertiesUtil.getValue("redis.ip.2"), Integer.parseInt(PropertiesUtil.getValue("redis.port.2")));
+		JedisShardInfo info2 = new JedisShardInfo(PropertiesUtil.getValue("redis.ip"), Integer.parseInt(PropertiesUtil.getValue("redis.port")));
+		List<JedisShardInfo> list = Lists.newArrayList();
+		list.add(info);
+		list.add(info2);
+
+		jedisPool = new ShardedJedisPool(config, list);
 	}
 
 
-	/** 获取资源 */
-	public static Jedis getResource(){
+	/**
+	 * 获取资源
+	 */
+	public static ShardedJedis getResource() {
 		return jedisPool.getResource();
 	}
 
-	/** 释放资源 */
-	public static void freeResource(Jedis jedis){
+	/**
+	 * 释放资源
+	 */
+	public static void freeResource(ShardedJedis jedis) {
 		// 源码内部已经判断是否是坏资源
 		jedis.close();
 	}
+
 
 }

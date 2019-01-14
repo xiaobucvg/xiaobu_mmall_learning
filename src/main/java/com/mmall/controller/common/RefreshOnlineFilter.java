@@ -1,4 +1,4 @@
-package com.mmall.controller.Filter;
+package com.mmall.controller.common;
 
 import com.github.pagehelper.StringUtil;
 import com.mmall.common.Const;

@@ -15,8 +15,8 @@ import java.util.UUID;
  * 2019/1/2 10:26
  */
 public class CookieUtil {
-	private static final String USE_DOMAIN = ".mmall.com";
-	private static final String USER_LOGIN_INFO = "USER_LOGIN_COOKIE";
+	public static final String USE_DOMAIN = ".mmall.com";
+	public static final String USER_LOGIN_INFO = "USER_LOGIN_COOKIE";
 
 	/**
 	 * 写入用户cookie
