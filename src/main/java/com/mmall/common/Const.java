@@ -116,4 +116,8 @@ public class Const {
 			this.code = code;
 		}
 	}
+
+	public interface REDIS_CLOCK{
+		String REDIS_CLOSE_ORDER_CLOCK = "REDIS_CLOSE_ORDER_CLOCK";
+	}
 }

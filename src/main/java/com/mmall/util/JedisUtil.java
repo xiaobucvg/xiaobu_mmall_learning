@@ -72,4 +72,26 @@ public class JedisUtil {
 		ShardedJedis jedis = ShardedRedisPool.getResource();
 		jedis.del(key);
 	}
+
+	public static Long setnx(String key, String value) {
+		ShardedJedis jedis = ShardedRedisPool.getResource();
+		Long res = null;
+		try{
+			res = jedis.setnx(key, value);
+		}catch(Exception e){
+			log.error("setnx error:设置{}为{}",key,value,e);
+		}
+		return res;
+	}
+
+	public static String getSet(String key, String value) {
+		ShardedJedis jedis = ShardedRedisPool.getResource();
+		String res = null;
+		try{
+			res = jedis.getSet(key, value);
+		}catch(Exception e){
+			log.error("getset error:设置{}为{}",key,value,e);
+		}
+		return res;
+	}
 }
